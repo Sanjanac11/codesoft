@@ -1,0 +1,50 @@
+import numpy as np
+import pandas as pd
+
+# Sample user-movie ratings
+user_movie_ratings = pd.DataFrame({
+    'user_id': [1]*100,
+    'movie_id': [1, 3, 6, 47, 50, 70, 101, 110, 151, 157]*10,
+    'user_ratings': [4, 4, 4, 5, 5, 3, 5, 4, 5, 5]*10
+})
+
+# Sample movie data
+movie_data = pd.DataFrame({
+    'movie_id': [1, 3, 6, 47, 50, 70, 101, 110, 151, 157],
+    'title': ["Toy Story (1995)", "Grumpier Old Men (1995)", "Heat (1995)", "Seven (a.k.a. Se7en) (1995)", "Usual Suspects, The (1995)", "From Dusk Till Dawn (1996)", "Bottle Rocket (1996)", "Braveheart (1995)", "Rob Roy (1995)", "Canadian Bacon (1995)"],
+    'genres': ["Adventure|Animation|Children|Comedy|Fantasy", "Comedy|Romance", "Action|Crime|Thriller", "Mystery|Thriller", "Crime|Mystery|Thriller", "Action|Comedy|Horror|Thriller", "Adventure|Comedy|Crime|Romance", "Action|Drama|War", "Action|Drama|Romance", "Comedy|War"]
+})
+
+# Merge movie data with user ratings
+user_movie_ratings = pd.merge(user_movie_ratings, movie_data, on='movie_id', how='left')
+
+# Pivot table to create user-item matrix
+user_item_matrix = user_movie_ratings.pivot_table(index='user_id', columns='title', values='user_ratings', fill_value=0)
+
+# Function to calculate similarity between users
+def calculate_similarity(user_item_matrix):
+    similarity_matrix = np.zeros((len(user_item_matrix), len(user_item_matrix)))
+    for i in range(len(user_item_matrix)):
+        for j in range(len(user_item_matrix)):
+            similarity_matrix[i][j] = np.dot(user_item_matrix.iloc[i], user_item_matrix.iloc[j]) / (np.linalg.norm(user_item_matrix.iloc[i]) * np.linalg.norm(user_item_matrix.iloc[j]))
+    return similarity_matrix
+
+# Function to generate recommendations for a user
+def generate_recommendations(user_id, user_item_matrix, similarity_matrix, num_recommendations=3):
+    user_preferences = user_item_matrix.iloc[user_id].to_numpy()  # Convert Series to numpy array
+    weighted_sum = np.dot(similarity_matrix[user_id], user_item_matrix)
+    # Remove items already rated by the user
+    weighted_sum[user_preferences.nonzero()] = 0
+    # Sort recommendations based on weighted sum
+    recommendations = np.argsort(weighted_sum)[::-1]
+    return recommendations[:num_recommendations]
+
+# Calculate similarity matrix
+similarity_matrix = calculate_similarity(user_item_matrix)
+
+# Generate recommendations for user 0
+user_id = 0
+recommendations = generate_recommendations(user_id, user_item_matrix, similarity_matrix)
+print("Recommendations for user", user_id)
+for recommendation in recommendations:
+    print("Movie:", user_item_matrix.columns[recommendation])
