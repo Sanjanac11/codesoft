@@ -1,0 +1,36 @@
+import re
+
+def simple_chatbot(input_text):
+    patterns = [
+        (r"hi|hey", "Hello! How can I help you?"),
+        (r"how are you", "I'm doing well, thank you!"),
+        (r"your name", "I'm a chatbot. You can call me Chitti."),
+        (r"quit|exit|bye", "Goodbye! Have a great day."),
+        (r"Who invented you?", "I am invented by Sanjana Chidrawar"),
+        (r"hello", "JAY SHREE RAM"),
+        ("What is a chatbot","A chatbot is a computer program that simulates conversation with human and end users,by using NLP to parse inputs and generative AI to automate responses")
+        ("Jay shree ram ","I hope you have a good day!")
+
+    ]
+
+    for pattern, response in patterns:
+        if re.search(pattern, input_text, re.IGNORECASE):
+            return response
+    # Default response if no pattern matches
+    return "I'm sorry, I didn't understand that. Can you please rephrase it or ask something else?"
+
+def main():
+    print("Chatbot: Hello! Type 'quit' to exit.");
+    
+    while True:
+        user_input = input("You: ")
+        
+        if user_input.lower() in ['quit', 'exit', 'bye']:
+            print("Chatbot: Goodbye!");
+            break
+
+        response = simple_chatbot(user_input)
+        print("Chatbot:", response);
+
+if __name__ == "__main__":
+    main()
